@@ -1,0 +1,75 @@
+`timescale 1ns/1ps
+module tb_ev_monitor;
+
+reg clk, rst;
+reg [7:0] temp;
+reg [12:0] c0,c1,c2,c3;
+
+wire [2:0] state;
+wire [6:0] ac,light,speaker;
+wire [1:0] max_i,min_i;
+wire [12:0] delta;
+wire [15:0] transfer,energy;
+
+top_controller DUT(
+    clk,rst,temp,c0,c1,c2,c3,
+    state,ac,light,speaker,
+    max_i,min_i,delta,transfer,energy
+);
+
+always #5 clk = ~clk;
+
+task run_vehicle;
+input [8*30:1] vehicle_name;
+input [7:0] temp_array [0:9];
+integer i;
+begin
+    rst = 1; #10;
+    rst = 0;
+
+    $display("\n============================================================");
+    $display("Vehicle: %s", vehicle_name);
+    $display("TIME TEMP STATE AC LIGHT SPK C0 C1 C2 C3 MAXI MINI DELTA TRANSFER ENERGY");
+    $display("------------------------------------------------------------");
+
+    for(i=0;i<10;i=i+1) begin
+        @(posedge clk);
+
+        temp = temp_array[i];
+
+        // Slight imbalance between cells
+        c0 = 3600 + i*5;
+        c1 = 3620 + i*3;
+        c2 = 3580 + i*7;
+        c3 = 3610 + i*4;
+
+        #1;
+
+        $display("%0t %0d %b %0d %0d %0d %0d %0d %0d %0d %0d %0d %0d %0d %0d",
+        $time,temp,state,ac,light,speaker,
+        c0,c1,c2,c3,max_i,min_i,delta,transfer,energy);
+    end
+end
+endtask
+
+// ----------------------
+// Temperature Profiles
+// ----------------------
+
+reg [7:0] tesla_temp [0:9]   = '{30,35,42,48,55,63,58,50,45,38};
+reg [7:0] tata_temp  [0:9]   = '{32,36,40,44,47,52,56,53,49,43};
+reg [7:0] byd_temp   [0:9]   = '{28,33,37,46,60,65,62,54,48,39};
+reg [7:0] hyundai_temp[0:9]  = '{31,34,39,45,51,57,59,52,46,40};
+
+initial begin
+    clk = 0;
+
+    run_vehicle("TESLA",   tesla_temp);
+    run_vehicle("TATA_PUNCH_EV", tata_temp);
+    run_vehicle("BYD_EV",  byd_temp);
+    run_vehicle("HYUNDAI_EV", hyundai_temp);
+
+    #50 $finish;
+end
+
+endmodule
