@@ -1,0 +1,56 @@
+`timescale 1ns/1ps
+module state_fsm(
+    input clk,
+    input rst,
+    input normal_in,
+    input warning_in,
+    input critical_in,
+    output reg [2:0] state
+);
+
+parameter NORMAL   = 3'b100;
+parameter WARNING  = 3'b010;
+parameter CRITICAL = 3'b001;
+
+reg [2:0] next_state;
+
+always @(posedge clk or posedge rst) begin
+    if (rst)
+        state <= NORMAL;
+    else
+        state <= next_state;
+end
+
+always @(*) begin
+    case(state)
+
+        NORMAL:
+            if (critical_in)
+                next_state = CRITICAL;
+            else if (warning_in)
+                next_state = WARNING;
+            else
+                next_state = NORMAL;
+
+        WARNING:
+            if (critical_in)
+                next_state = CRITICAL;
+            else if (normal_in)
+                next_state = NORMAL;
+            else
+                next_state = WARNING;
+
+        CRITICAL:
+            if (normal_in)
+                next_state = NORMAL;
+            else if (warning_in)
+                next_state = WARNING;
+            else
+                next_state = CRITICAL;
+
+        default:
+            next_state = NORMAL;
+    endcase
+end
+
+endmodule
