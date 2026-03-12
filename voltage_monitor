@@ -1,0 +1,28 @@
+`timescale 1ns/1ps
+module voltage_monitor(
+    input  [12:0] c0,c1,c2,c3,
+    output reg [1:0] max_i,
+    output reg [1:0] min_i,
+    output reg [12:0] delta
+);
+
+reg [12:0] max_v, min_v;
+
+always @(*) begin
+    max_v = c0; 
+    min_v = c0;
+    max_i = 0; 
+    min_i = 0;
+
+    if (c1 > max_v) begin max_v = c1; max_i = 1; end
+    if (c2 > max_v) begin max_v = c2; max_i = 2; end
+    if (c3 > max_v) begin max_v = c3; max_i = 3; end
+
+    if (c1 < min_v) begin min_v = c1; min_i = 1; end
+    if (c2 < min_v) begin min_v = c2; min_i = 2; end
+    if (c3 < min_v) begin min_v = c3; min_i = 3; end
+
+    delta = max_v - min_v;
+end
+
+endmodule
