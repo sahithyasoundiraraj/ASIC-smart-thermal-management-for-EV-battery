@@ -1,0 +1,27 @@
+`timescale 1ns/1ps
+module energy_accumulator(
+    input clk,
+    input rst,
+    input [2:0] state,
+    input [12:0] delta,
+    output reg [15:0] transfer,
+    output reg [15:0] energy
+);
+
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        transfer <= 0;
+        energy <= 0;
+    end
+    else begin
+        if (state != 3'b001) begin
+            transfer <= delta >> 2;
+            energy <= energy + (delta >> 2);
+        end
+        else begin
+            transfer <= 0;
+        end
+    end
+end
+
+endmodule
