@@ -1,0 +1,58 @@
+`timescale 1ns/1ps
+module top_controller(
+    input clk, rst,
+    input [7:0] temp,
+    input [12:0] c0,c1,c2,c3,
+
+    output [2:0] state,
+    output [6:0] ac,light,speaker,
+    output [1:0] max_i,min_i,
+    output [12:0] delta,
+    output [15:0] transfer,energy
+);
+
+wire normal, warning, critical;
+
+temp_comparator TC(
+    .temp(temp),
+    .normal(normal),
+    .warning(warning),
+    .critical(critical)
+);
+
+state_fsm FSM(
+    .clk(clk),
+    .rst(rst),
+    .normal_in(normal),
+    .warning_in(warning),
+    .critical_in(critical),
+    .state(state)
+);
+
+power_controller PC(
+    .state(state),
+    .ac(ac),
+    .light(light),
+    .speaker(speaker)
+);
+
+voltage_monitor VM(
+    .c0(c0),
+    .c1(c1),
+    .c2(c2),
+    .c3(c3),
+    .max_i(max_i),
+    .min_i(min_i),
+    .delta(delta)
+);
+
+energy_accumulator EA(
+    .clk(clk),
+    .rst(rst),
+    .state(state),
+    .delta(delta),
+    .transfer(transfer),
+    .energy(energy)
+);
+
+endmodule
